@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
+
 using Newtonsoft.Json;
 using System.Data;
-using System.IdentityModel.Tokens.Jwt;
+
 using System.Security.Claims;
 using System.Text;
 
@@ -47,36 +47,36 @@ namespace API_11_01.Controllers
 
         }
 
-        [HttpGet("GenerateJwtToken")]
-        public string GenerateJwtToken(string username)
-        {
-            var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        //[HttpGet("GenerateJwtToken")]
+        //public string GenerateJwtToken(string username)
+        //{
+        //    var jwtSettings = _configuration.GetSection("Jwt");
+        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: new[] { new Claim(ClaimTypes.Name, username) },
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
-                signingCredentials: creds);
+        //    var token = new JwtSecurityToken(
+        //        issuer: jwtSettings["Issuer"],
+        //        audience: jwtSettings["Audience"],
+        //        claims: new[] { new Claim(ClaimTypes.Name, username) },
+        //        expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
+        //        signingCredentials: creds);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-        [HttpGet("Test")]
-        public object Test() {
-            var a = GenerateJwtToken("hh");
-            var hh = new { Name = "Nagar" };
-        var table1= new List<object>();
-            table1.Add(new { Name="Nagar",Age=25});
-            table1.Add(new { Name = "Nagar", Age = 25 });
-            table1.Add(hh);
-            Object hu=JsonConvert.SerializeObject(table1);
-            return hu;
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
+        //[HttpGet("Test")]
+        //public object Test() {
+        //    var a = GenerateJwtToken("hh");
+        //    var hh = new { Name = "Nagar" };
+        //var table1= new List<object>();
+        //    table1.Add(new { Name="Nagar",Age=25});
+        //    table1.Add(new { Name = "Nagar", Age = 25 });
+        //    table1.Add(hh);
+        //    Object hu=JsonConvert.SerializeObject(table1);
+        //    return hu;
 
 
          
-        }
+        //}
        
         [HttpGet("Linq")]
         public string Linq()
