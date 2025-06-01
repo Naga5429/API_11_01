@@ -1,25 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-public class CustomAuthenticationFilter : IAsyncAuthorizationFilter
+public class CustomAuthenticationFilter : IAuthorizationFilter
 {
-    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var headers = context.HttpContext.Request.Headers;
+        // Get the Authorization header
+        var token = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
-        if (!headers.ContainsKey("Authorization") || headers["Authorization"] != "Bearer my-token")
+        // Simple validation
+        if (string.IsNullOrEmpty(token) || token != "Bearer your-secret-token")
         {
-            context.Result = new UnauthorizedResult(); // Return 401 Unauthorized
-            return;
-        }
-
-        // Custom logic to validate the token
-        var token = headers["Authorization"].ToString().Replace("Bearer ", "");
-
-        if (token != "my-token") // Replace this with your logic
-        {
-            context.Result = new UnauthorizedResult();
-            return;
+            context.Result = new UnauthorizedResult(); // return 401
         }
     }
 }

@@ -2,23 +2,70 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace API_11_01.Controllers
 {
     // [Authorize]
-//[SimpleErrorFilter]
-     [Route("api/[controller]")]
+    //[SimpleErrorFilter]
+   // [ServiceFilter(typeof(CustomAuthenticationFilter))]
+    [Route("api/[controller]")]
     [ApiController]
     public class ApiController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+
+        public ApiController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
         // GET: api/<ApiController>
         public string Conn = "Data Source=OCS-L00058\\SQLEXPRESS;Initial Catalog=Student;Integrated Security=True";
+
+        [HttpGet("LinqAttemp1")]
+        public Object LinqAttemp1()
+        {
+            List<Temp1> lst1 = new List<Temp1>();
+            lst1.Add(new Temp1 { temp1name = "Nagaraj", temp1age = "25", temp1Id = 1 });
+            lst1.Add(new Temp1 { temp1name = "araj", temp1age = "23", temp1Id = 2});
+
+            List<Temp2> lst2 = new List<Temp2>();
+            lst2.Add(new Temp2 { temp2name = "Nagaraj", temp2age = "25", temp2Id = 1 });
+            lst2.Add(new Temp2 { temp2name = "araj", temp2age = "23", temp2Id = 2 });
+            var test = lst1.Join(lst2, a => a.temp1Id, b => b.temp2Id, (a, b) => new { a, b }).ToList();
+            var test2 = lst1.GroupJoin(lst2, a => a.temp1Id, b => b.temp2Id, (a, result)=> new {a,result}).ToList();
+            return test2;
+
+
+        }
+
+        [HttpGet("GenerateJwtToken")]
+        public string GenerateJwtToken(string username)
+        {
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: new[] { new Claim(ClaimTypes.Name, username) },
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
         [HttpGet("Test")]
         public object Test() {
+            var a = GenerateJwtToken("hh");
             var hh = new { Name = "Nagar" };
         var table1= new List<object>();
             table1.Add(new { Name="Nagar",Age=25});
@@ -30,6 +77,7 @@ namespace API_11_01.Controllers
 
          
         }
+       
         [HttpGet("Linq")]
         public string Linq()
         {
@@ -77,17 +125,19 @@ namespace API_11_01.Controllers
 
 
         [HttpPost("InsertStudent")]
-        public int InsertStudent(Nagaraj st)
+        public object InsertStudent(Nagaraj st)
         {
 
             SqlConnection conn = new SqlConnection(Conn);
+          
+            Response.Headers.Add("Authorization", "hhh");
             var jsondata = JsonConvert.SerializeObject(st);
             SqlCommand cmd = new SqlCommand("SpInsMultipleRow", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@JsonData", jsondata);
             conn.Open();
             int o = cmd.ExecuteNonQuery();
-            return 0;
+            return Response.Headers;
         }
 
         [HttpGet]
@@ -114,6 +164,7 @@ namespace API_11_01.Controllers
             }
             return student;  
         }
+        //hh
         [HttpGet("GetDataById")]
         public List<Student> GetDataById(int id)
         {
